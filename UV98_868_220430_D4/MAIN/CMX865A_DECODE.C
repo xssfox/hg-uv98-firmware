@@ -284,6 +284,11 @@ uchar HDLC_DECODE(uint skip)
 
     while (1)		// Middle of packet
     {
+			  if (KISS_LEN > 270)
+        {
+					  KISS_LEN = KISS_START;
+            return 3;   // The receiving length is too long. For example, if two radio stations are transmitting at the same time, the data partially overlaps and an abnormal error pops up.
+        }
         KISS_DATA[KISS_LEN++] = HDLC_RX_TEMP;
 	
 				rx_byte = HDLC_RX_BYTE();
@@ -293,11 +298,7 @@ uchar HDLC_DECODE(uint skip)
             return 2;      // If there are abnormal errors such as disconnection, noise, long sound, etc., the system will pop up
         }
 
-        if (KISS_LEN > 1000)
-        {
-					  KISS_LEN = KISS_START;
-            return 3;   // The receiving length is too long. For example, if two radio stations are transmitting at the same time, the data partially overlaps and an abnormal error pops up.
-        }
+
 
         if (END_7E == 1)
         {
@@ -420,7 +421,7 @@ uchar CMX865A_HDLC_RX()			// Exclusive decoding method
         {
             HDLC_RX_BUF[HDLC_RX_LEN++] = CMX865A_READ_E5();
 
-            if (HDLC_RX_LEN > 795)
+            if (HDLC_RX_LEN > 290)
             {
                 break;   // Limit data to 300 bytes at most, if it is too long, it will be skipped
             }
@@ -493,7 +494,7 @@ uchar CMX865A_HDLC_RX()			// Exclusive decoding method
 							KISS_DATA[KISS_LEN++] = 0x00;
 				}
 				stu = HDLC_DECODE(1);
-				if (stu == 4){break;};
+				if (stu == 3){break;};
     }
 
 		if (success==1){
@@ -544,7 +545,7 @@ uchar CMX865A_HDLC_RX_2()			// Interrupt decoding method
 							  KISS_DATA[KISS_LEN++] = 0x00;
             }
 						stu = HDLC_DECODE(1);
-						if (stu == 4){break;};
+						if (stu == 3){break;};
         }
 
         HDLC_RX_LEN = 0;	// The receiving length is cleared to 0
@@ -614,7 +615,7 @@ void CMX_RX_INT()	// Timed interrupt, 5ms interrupt once
     // B6=1
     HDLC_RX_BUF[HDLC_RX_LEN++] = CMX865A_READ_E5();
 
-    if (HDLC_RX_LEN > 795)
+    if (HDLC_RX_LEN > 290)
     {
         CMX_RX_BUSY = 1;   // Limit data to 300 bytes at most, if it is too long, it will be skipped
     }
