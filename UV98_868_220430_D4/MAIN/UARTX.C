@@ -58,7 +58,7 @@ uchar UARTx_TXD_KISS()	    	// Processing KISS data received by the serial port
         return 0;
     }
 
-    if (UARTx_BUF_LENTH < 20)
+    if (UARTx_BUF_LENTH < 4)
     {
         return 0;   // Check whether it is KISS data //Judge whether it is KISS data C0 00 ... C0 format
     }
@@ -67,8 +67,23 @@ uchar UARTx_TXD_KISS()	    	// Processing KISS data received by the serial port
 
     for(i = 2; i < (UARTx_BUF_LENTH - 1); i++)
     {
-        KISS_DATA[i - 2] =	UARTx_BUF[i];
-        KISS_LEN++;
+			  if (UARTx_BUF[i] == 0xC0 ) {
+					BEACON_TX_CHX(0);
+					Delay_time_25ms(4);
+					i++;
+					KISS_LEN=0;
+				} else if (UARTx_BUF[i] == 0xDB && UARTx_BUF[i+1] == 0xDC) {
+					KISS_DATA[KISS_LEN] =	0xC0;
+					KISS_LEN++;
+					i++;
+				} else if (UARTx_BUF[i] == 0xDB && UARTx_BUF[i+1] == 0xDD) {
+					KISS_DATA[KISS_LEN] =	0xDB;
+					KISS_LEN++;
+					i++;
+				} else {
+					KISS_DATA[KISS_LEN] =	UARTx_BUF[i];
+					KISS_LEN++;
+				}
     }
 
 // CMX865A_HDLC_TX(KISS_DATA,KISS_LEN); //RF sends data

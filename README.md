@@ -1,3 +1,21 @@
+﻿# modifications by VK3FUR / VK4XSS for better KISS TNC support
+Note that these are hack just to test with
+
+- Defaults to digipeater turned off
+- Defaults to KISS HEX
+- Attempts to fix issues with the TNC
+  - Add escaping of FEND
+  - Process multiple BT KISS in single transmission
+  - Process multiple RF RX packets in a single transmission
+  - Fix min length being too long
+
+### Flashing
+- Git clone this - https://github.com/sms-wyt/stcflash
+- `python3 stcflash.py --port /dev/YOUR_RADIO_PROGRAMMING_PORT --lowbaud 1200 UV98_868_220430_D4/OBJ/UV98_868_220430_D4.hex`
+- Press PF1 (button under the PTT) while turning on the radio
+- Wait until APRS UpData then let go of button
+- Wait for flash to be done
+
 # hg-uv98-firmware
 LANCHONLH HG-UV98 APRS Dual Band Firmware
 

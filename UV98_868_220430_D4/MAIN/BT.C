@@ -297,7 +297,7 @@ void BT_OUT(unsigned char STU)	// STU=0 unknown format, 1=valid beacon received 
         UART2_SendData(0x00); 		// Bluetooth serial port outputs KISS data
 
         for (i = 0; i < KISS_LEN; i++)
-        {
+        {	
             UART2_SendData(KISS_DATA[i]);
         }
 

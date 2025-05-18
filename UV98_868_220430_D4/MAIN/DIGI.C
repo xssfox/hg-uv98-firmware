@@ -168,7 +168,7 @@ void DIGI_CALL_COV(uchar kiss_idx)
     uchar MY_CALL[7];
 
     // If the total length of the data is less than (128-9), the 14th bit of KISS is shifted right by 7 bytes, leaving 7 bytes to insert the relay name
-    if  (KISS_LEN > 150)
+    if  (KISS_LEN > 1000)
     {
         return;   // If the total length of the KISS data is not enough to insert a 7-byte relay name, exit
     }
@@ -351,7 +351,7 @@ void dig_Initial()
     }
 
     EEPROM_write_one(DIGI1_NAME + 6, 0x00); // End symbol
-    EEPROM_write_one(DIGI1_EN, 1 ); 	// 0 = close, 1 = forward
+    EEPROM_write_one(DIGI1_EN, 0 ); 	// 0 = close, 1 = forward
 
     // YOU WIDE2-1
     for(i = 0; i < 6; i++)
@@ -360,7 +360,7 @@ void dig_Initial()
     }
 
     EEPROM_write_one(DIGI2_NAME + 6, 0x00); // End symbol
-    EEPROM_write_one(DIGI2_EN, 1 ); 	// 0 = close, 1 = forward
+    EEPROM_write_one(DIGI2_EN, 0 ); 	// 0 = close, 1 = forward
 
 
 

@@ -293,7 +293,7 @@ void DEMO_SETUP(uchar UV)	// Check EEROM after power on, if there is any error, 
     // *****************************************************
 
     EEPROM_write_one(0x0015, 0 ); 	// Bluetooth output GPS 0=OFF, 1=ON
-    EEPROM_write_one(0x0016, 2 ); 	// Bluetooth output 0=OFF 1=KISS hex, 2=UI data 3=waypoint GPS 4=KISS ASC
+    EEPROM_write_one(0x0016, 1 ); 	// Bluetooth output 0=OFF 1=KISS hex, 2=UI data 3=waypoint GPS 4=KISS ASC
 
     // *****************************************************
     EEPROM_write_one(0x0017, 1 ); 	// Coordinate format 0 = degrees 1 = degrees minutes 2 = degrees minutes seconds

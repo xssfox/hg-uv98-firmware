@@ -20,7 +20,7 @@
 
 
 
-#define MAX_LEN 200	 // The maximum length of KISS data allowed to be received
+#define MAX_LEN 800	 // The maximum length of KISS data allowed to be received
 
 #include  <INTRINS.H> // Keil library
 
@@ -29,7 +29,7 @@ bit HDLC_RX_BIT;
 uchar HDLC_RX_COUNT;			// Reset the count of 5 consecutive 1s
 
 // ************* Receive Register
-uchar HDLC_RX_BUF[400];
+uchar HDLC_RX_BUF[800];
 // float APRS_KISS_BUF[300];
 
 uchar HDLC_RX_BIT_OLD;// The state of the last bit
@@ -114,7 +114,7 @@ uchar HDLC_START_7E()
             {
                 COUNT_7E++;		 	// 3 consecutive detections of FLAG=7E
 
-                if (COUNT_7E > 2)
+                if (COUNT_7E > 0)
                 {
                     BIT_1_COUNT = 0;	   // Retrieval success, return
                     return 0x01;
@@ -235,17 +235,17 @@ uchar HDLC_RX_BYTE()
 
 uchar HDLC_CRC()		 // Check the last 2 digits of the data
 {
-    GetCrc16_LEN(KISS_DATA, KISS_LEN - 2);	 // Calculate the checksum of the data
+    GetCrc16_LEN(KISS_DATA+KISS_START, KISS_LEN - 2 - KISS_START);	 // Calculate the checksum of the data
 // disp_Hex2Ascii2(FCS_LO);   disp_Hex2Ascii2(FCS_HI);
 
     if (FCS_LO != KISS_DATA[KISS_LEN - 2])
     {
-        return 0;
+        return 0; 
     }
 
     if (FCS_HI != KISS_DATA[KISS_LEN - 1])
     {
-        return 0;
+        return 0; 
     }
 
     KISS_LEN = KISS_LEN - 2;
@@ -253,12 +253,18 @@ uchar HDLC_CRC()		 // Check the last 2 digits of the data
 }
 
 
-uchar HDLC_DECODE( )
+uchar HDLC_DECODE(uint skip)
 {
-    if (HDLC_START_7E() != 0x01)
-    {
-        return 0;    // Look for the first FLAG=7E at the front of the data packet. If the 7E start marker is not found, exit.
-    }
+	  uchar rx_byte;
+		uint i;
+	uint y;
+	 if (skip == 0){
+			if (HDLC_START_7E() != 0x01)
+			{
+					return 0;    // Look for the first FLAG=7E at the front of the data packet. If the 7E start marker is not found, exit.
+			}
+	 }
+
 
     while (1)		// Wait for 7E in the packet header to be received completely
     {
@@ -273,19 +279,23 @@ uchar HDLC_DECODE( )
         }
     }
 
-    KISS_LEN = 0;		// Receive the first KISS data
+   // KISS_LEN = 0;		// Receive the first KISS data
+		KISS_START = KISS_LEN; //set the KISS_START so that we can calc the checksum correctly
 
     while (1)		// Middle of packet
     {
         KISS_DATA[KISS_LEN++] = HDLC_RX_TEMP;
-
-        if (HDLC_RX_BYTE() != 0x01)
+	
+				rx_byte = HDLC_RX_BYTE();
+        if (rx_byte != 0x01)
         {
+					  KISS_LEN = KISS_START;
             return 2;      // If there are abnormal errors such as disconnection, noise, long sound, etc., the system will pop up
         }
 
-        if (KISS_LEN > 190)
+        if (KISS_LEN > 1000)
         {
+					  KISS_LEN = KISS_START;
             return 3;   // The receiving length is too long. For example, if two radio stations are transmitting at the same time, the data partially overlaps and an abnormal error pops up.
         }
 
@@ -297,8 +307,28 @@ uchar HDLC_DECODE( )
 
     if 	(HDLC_CRC() == 1)
     {
+			for (i=KISS_START;i<KISS_LEN;i++){
+						if(KISS_DATA[i] == 0xDB || KISS_DATA[i] == 0xC0){
+							for(y=KISS_LEN;y>i;y--){
+								KISS_DATA[y]=KISS_DATA[y-1]; // shift everything right one so we can fit
+							}
+						}
+					  if(KISS_DATA[i] == 0xDB){
+							KISS_DATA[i] = 0xDB;
+							KISS_DATA[i+1] = 0xDD;
+							KISS_LEN++;
+						}
+					  if(KISS_DATA[i] == 0xC0){
+							KISS_DATA[i] = 0xDB;
+							KISS_DATA[i+1] = 0xDC;
+							KISS_LEN++;
+						}
+			}
+			
         return 5;   // Check the last 2 digits of the data //Check data error
-    }
+    } else {
+			KISS_LEN = KISS_START;
+		}
 
 // UART1_SendString(&quot;KISS RX: &quot;); DEBUG_KISS(KISS_DATA,KISS_LEN);
 
@@ -336,6 +366,7 @@ uchar CMX865A_HDLC_RX()			// Exclusive decoding method
     uint stu;
     uint over_err;
     uint fram_err;
+	  uint success = 0;
 
 // DCD=0;
 // HDLC_RX_LEN=0;
@@ -389,7 +420,7 @@ uchar CMX865A_HDLC_RX()			// Exclusive decoding method
         {
             HDLC_RX_BUF[HDLC_RX_LEN++] = CMX865A_READ_E5();
 
-            if (HDLC_RX_LEN > 295)
+            if (HDLC_RX_LEN > 795)
             {
                 break;   // Limit data to 300 bytes at most, if it is too long, it will be skipped
             }
@@ -445,21 +476,29 @@ uchar CMX865A_HDLC_RX()			// Exclusive decoding method
 
     TOTAL_IDX = HDLC_RX_LEN * 8; // Total index length
     HDLC_RX_IDX = 0;	  		 // Start checking 7E index position // UART1_SendString(&quot;TATAL: &quot;); UART1_DEBUG(TOTAL_IDX);
-
-    for (i = 0; i < 10; i++) 	 // Up to 10 consecutive decodings
+    KISS_LEN = 0;	
+		stu = HDLC_DECODE(0);
+    for (i = 0; i < 20; i++) 	 // Up to 10 consecutive decodings
     {
-        stu = HDLC_DECODE();
+
         UART2_SendString("err:  ");
         UART2_SendData(stu + 0x30);
         UART2_SendString("\r\n");
-
-        if (stu == 5)
-        {
-            return 1;	   // Decoding success
-        }
+		    
+				if (stu == 5)
+				{
+							success = 1;
+					    KISS_DATA[KISS_LEN++] = 0xc0;
+							KISS_DATA[KISS_LEN++] = 0xc0;
+							KISS_DATA[KISS_LEN++] = 0x00;
+				}
+				stu = HDLC_DECODE(1);
+				if (stu == 4){break;};
     }
 
-
+		if (success==1){
+			return 1;
+		}
     return 0;
 }
 
@@ -470,6 +509,7 @@ uchar CMX865A_HDLC_RX_2()			// Interrupt decoding method
 {
     uint i;
     uchar stu;
+	  uint success = 0;
 
     stu = 0;
 
@@ -485,16 +525,26 @@ uchar CMX865A_HDLC_RX_2()			// Interrupt decoding method
 
         TOTAL_IDX = HDLC_RX_LEN * 8; // Total index length
         HDLC_RX_IDX = 0;	 // Start checking at index position 7E
-
-        for (i = 0; i < 10; i++) 	 // Up to 10 consecutive decodings
+				KISS_LEN = 0;	
+				
+		  	stu = HDLC_DECODE(0);
+				
+        for (i = 0; i < 40; i++) 	 // Up to 10 consecutive decodings
         {
-            stu = HDLC_DECODE();
+					
+            
 
 // UART2_SendString(&quot;err: &quot;); UART2_SendData(stu+0x30); UART2_SendString(&quot;\r\n&quot;);
+
             if (stu == 5)
             {
-                break;	   // Decoding success
+							  success = 1;
+							  KISS_DATA[KISS_LEN++] = 0xc0;
+							  KISS_DATA[KISS_LEN++] = 0xc0;
+							  KISS_DATA[KISS_LEN++] = 0x00;
             }
+						stu = HDLC_DECODE(1);
+						if (stu == 4){break;};
         }
 
         HDLC_RX_LEN = 0;	// The receiving length is cleared to 0
@@ -514,8 +564,11 @@ uchar CMX865A_HDLC_RX_2()			// Interrupt decoding method
 // UART1_SendString(&quot; \r\n&quot;);
 // }
 // UART1_SendString(&quot;========\r\n&quot;);
-
-    return stu;
+		if (success == 1){
+			return 5;
+		} else {
+			return stu;
+		}
 }
 
 // Read received data, the status register changes as follows, B5 = 0 B6 = 0 3C 00 Reception completed 3C 40 Reception overflow 3C 60
@@ -540,7 +593,7 @@ void CMX_RX_INT()	// Timed interrupt, 5ms interrupt once
 
     if ((DCD & 0x0400) != 0x0400)	 // B10=0 signal disappears. Data length &lt;20, then it is invalid and received again. Otherwise, data reception is completed.
     {
-        if (HDLC_RX_LEN < 20)
+        if (HDLC_RX_LEN < 40)
         {
             HDLC_RX_LEN = 0;
         }
@@ -561,7 +614,7 @@ void CMX_RX_INT()	// Timed interrupt, 5ms interrupt once
     // B6=1
     HDLC_RX_BUF[HDLC_RX_LEN++] = CMX865A_READ_E5();
 
-    if (HDLC_RX_LEN > 295)
+    if (HDLC_RX_LEN > 795)
     {
         CMX_RX_BUSY = 1;   // Limit data to 300 bytes at most, if it is too long, it will be skipped
     }

@@ -26,7 +26,7 @@
 // ************* Send Register
 bit HDLC_TX_BIT;
 uchar HDLC_TX_COUNT;			// Reset the count of 5 consecutive 1s
-uchar HDLC_TX_BUF[300];
+uchar HDLC_TX_BUF[800];
 uint HDLC_TX_IDX;	  // Current bit index
 
 // ************* Receive Register
@@ -234,7 +234,7 @@ void CMX865A_HDLC_TX(uchar *pData, uchar nlen)	  // HDLC Encoding
 // CMX865A_Init();
 
 
-    for (i = 0; i < 250; i++)
+    for (i = 0; i < 750; i++)
     {
         HDLC_TX_BUF[i] = 0;      // 
     }

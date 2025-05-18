@@ -328,7 +328,7 @@ unsigned char RF_DECODE()	   // RF Decoding KISS Data
         KISS_DATA[KISS_LEN] = HDLC_DATA;
         KISS_LEN++;	   // Deposit data
 
-        if (KISS_LEN > 120)
+        if (KISS_LEN > 1000)
         {
             return 5;   // The receiving length is too long. For example, if two radio stations are transmitting at the same time, the data partially overlaps and an abnormal error pops up.
         }
