@@ -4,7 +4,7 @@
 
  
  
-unsigned char SN_RX_BUFFER[250]=0;	// Decoded KISS data, excluding C0 00 ..C0, length &lt; 128
+unsigned char SN_RX_BUFFER[350]=0;	// Decoded KISS data, excluding C0 00 ..C0, length &lt; 128
  
 unsigned char KISS_DATA[1024];	// Decoded KISS data, excluding C0 00 ..C0, length &lt; 128
 unsigned char KISS_LEN;			// Decoded KISS data length

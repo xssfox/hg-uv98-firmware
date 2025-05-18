@@ -81,7 +81,7 @@ void UART1() interrupt 4 using 1
         UART1_BUF_DATA[UART1_BUF_LENTH++] = SBUF;
         UART1_BUF_DATA[UART1_BUF_LENTH] = 0x00;		// Add end symbol //Receive 1 byte of data
 
-        if (UART1_BUF_LENTH > 590)
+        if (UART1_BUF_LENTH > 290)
         {
             UART1_BUF_LENTH = 0;
             return;
