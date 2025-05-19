@@ -284,7 +284,7 @@ uchar HDLC_DECODE(uint skip)
 
     while (1)		// Middle of packet
     {
-			  if (KISS_LEN > 270)
+			  if (KISS_LEN > 900)
         {
 					  KISS_LEN = KISS_START;
             return 3;   // The receiving length is too long. For example, if two radio stations are transmitting at the same time, the data partially overlaps and an abnormal error pops up.

@@ -71,7 +71,7 @@ void UART2() interrupt 8 using 1
         UART2_BUF_DATA[UART2_BUF_LENTH++] = S2BUF;
         UART2_BUF_DATA[UART2_BUF_LENTH] = 0x00;	 // Receive 1 byte of data // Add the end symbol
 
-        if (UART2_BUF_LENTH > 290)
+        if (UART2_BUF_LENTH > 500)
         {
             UART2_BUF_LENTH = 0;
             return;

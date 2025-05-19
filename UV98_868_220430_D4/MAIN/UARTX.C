@@ -68,9 +68,15 @@ uchar UARTx_TXD_KISS()	    	// Processing KISS data received by the serial port
     for(i = 2; i < (UARTx_BUF_LENTH - 1); i++)
     {
 			  if (UARTx_BUF[i] == 0xC0 ) {
-					BEACON_TX_CHX(0);
-					Delay_time_25ms(4);
+					if (KISS_LEN>0){
+						BEACON_TX_CHX(0);
+						Delay_time_25ms(4);
+					}
 					i++;
+					if (UARTx_BUF[i] == 0xC0 ) { // double c0 check
+						i++;
+					}
+					
 					KISS_LEN=0;
 				} else if (UARTx_BUF[i] == 0xDB && UARTx_BUF[i+1] == 0xDC) {
 					KISS_DATA[KISS_LEN] =	0xC0;
