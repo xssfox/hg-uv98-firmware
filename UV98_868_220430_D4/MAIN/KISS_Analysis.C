@@ -494,7 +494,14 @@ void GET_JULI_DIR_EL()	  // Find the distance, relative north direction, relativ
 void DISP_KISS_DATA()   // Analyze and display the other party&#39;s positioning data, and display
 {
     uchar STU;
+		if (EEPROM_Buffer[0x0016] == 1)  {
+	BT_OUT(0);
+		return;
+	}
+		
     CLEAN_UI_DATA();
+	
+
 
     if (KISS_TO_MICE() == 1)
     {

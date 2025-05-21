@@ -64,7 +64,7 @@ void GetCrc16(const uchar *pData)
 */
     
 // Calculates the 16-bit CRC of data of a given length.
-void GetCrc16_LEN(const uchar *pData,uchar nLength)
+void GetCrc16_LEN(const uchar *pData,uint nLength)
 {
     unsigned short fcs = 0xffff;    // FCS Initialization
    	unsigned short result;

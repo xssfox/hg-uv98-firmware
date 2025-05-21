@@ -7,7 +7,6 @@
 /************* External function and variable declaration*****************/
 
   
-extern uchar CMX865A_HDLC_RX() ;   // Exclusive decoding method
 
 extern uchar CMX865A_HDLC_RX_2();  // Interrupt decoding method
 

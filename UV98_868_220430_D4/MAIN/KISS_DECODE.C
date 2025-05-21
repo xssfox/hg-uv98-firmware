@@ -18,6 +18,8 @@
 #include "tostring.H"
 #include "BT.H"
 
+#include "STC_EEPROM.H"
+
 #include <string.h>
 
 
@@ -46,8 +48,9 @@ void APRS_KISS_DECODE()			 // APRS decoding, serial port output KISS, network ou
 
 // LED_STU=0;
     DISP_KISS_DATA() ;  // Analyze and display the other party&#39;s positioning data, and display
-
-    DISP_A08();
+	  if (EEPROM_Buffer[0x0016] != 1)  { // when in kiss hex we don't process data on the radio
+			DISP_A08();
+		}
     Delay_time_25ms(2);  // Refresh the real-time beacon and delay appropriately after refreshing, otherwise DIGI PTT cannot detect it
 
 // FUN_B(0); //Refresh beacon list

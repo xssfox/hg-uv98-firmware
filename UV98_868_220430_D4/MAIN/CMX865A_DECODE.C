@@ -29,11 +29,11 @@ bit HDLC_RX_BIT;
 uchar HDLC_RX_COUNT;			// Reset the count of 5 consecutive 1s
 
 // ************* Receive Register
-uchar HDLC_RX_BUF[800];
+uchar HDLC_RX_BUF[1024];
 // float APRS_KISS_BUF[300];
 
 uchar HDLC_RX_BIT_OLD;// The state of the last bit
-uchar BIT_1_COUNT; // Count of consecutive 1s
+uint BIT_1_COUNT; // Count of consecutive 1s
 uchar END_7E; 	   // 7E End Marker
 uchar HDLC_RX_TEMP;   // Temporary decoded data
 uint  TOTAL_IDX;   // Total number of digits
@@ -85,7 +85,7 @@ uchar HDLC_READ_BIT()	 // Read a 0 or 1
 uchar HDLC_START_7E()
 {
     uchar COUNT_7E;
-    uchar BIT_STU;// 7E Count
+    uint BIT_STU;// 7E Count
 
     HDLC_RX_TEMP = 0x00;
     HDLC_RX_BIT_OLD = HDLC_READ_BIT();	 // Recording start input level
@@ -143,7 +143,7 @@ uchar HDLC_START_7E()
 
 uchar HDLC_RX_BYTE()
 {
-    unsigned char bit_count;
+    uint bit_count;
     uchar BIT_STU;
 
     END_7E = 0;	 // Data 7E flag cleared
@@ -360,152 +360,6 @@ void DISP_HDLC(uchar dat)	// Convert to high and low symbol display, for debuggi
 
 
 
-uchar CMX865A_HDLC_RX()			// Exclusive decoding method
-{
-    uchar DCD;
-    uint i;
-    uint stu;
-    uint over_err;
-    uint fram_err;
-	  uint success = 0;
-
-// DCD=0;
-// HDLC_RX_LEN=0;
-// while (CMX865A_DET()==1) //Detect the signal and start recording data
-// {
-// DCD=1;
-// HDLC_RX_BUF[HDLC_RX_LEN++]=CMX865A_RX_DATA();
-// if (HDLC_RX_LEN&gt;295){break;} //Limit data, 300 bytes at most, if it is too long, it will be jumped
-// }
-// 
-// if (DCD==0){return 0;} //No signal jump out
-
-
-
-    stu = CMX865A_READ_E6() ;		  // E6 //New data, B10=1 B6=1
-
-    if ((stu & 0x0400) != 0x0400)
-    {
-        return 0;
-    }
-
-    HDLC_RX_LEN = 0;
-    over_err =	fram_err = 0;
-
-    while(1)
-    {
-
-        if ((stu & 0x0001) == 0x0001)
-        {
-            sig_in = 0;
-        }
-        else
-        {
-            {
-                sig_in = 1;
-            }
-        }
-
-        if ((stu & 0x0010) == 0x0010)
-        {
-            fram_err++;   // 
-        }
-
-        if ((stu & 0x0020) == 0x0020)
-        {
-            over_err++;   // 
-        }
-
-
-        if ((stu & 0x0040) == 0x0040)	 // Receive new data, B6=1
-        {
-            HDLC_RX_BUF[HDLC_RX_LEN++] = CMX865A_READ_E5();
-
-            if (HDLC_RX_LEN > 290)
-            {
-                break;   // Limit data to 300 bytes at most, if it is too long, it will be skipped
-            }
-        }
-
-        stu = CMX865A_READ_E6() ;
-
-        if ((stu & 0x0400) != 0x0400)
-        {
-            break;
-        }
-
-
-    }
-
-
-
-
-// UART1_SendData(0 yes);
-// for (i=0;i<len;i++)   {	UART1_SendData(HDLC_RX_BUF[i]);  }// 调试
-// for (i=0;i<30;i++)   {	UART1_SendData(0X00);  }// 调试
-
-// UART1_SendString(&quot;========\r\n&quot;); //Format debugging with number
-// for (i=0;i<40;i++)
-// {
-// UART1_SendString(&quot;(&quot;); UART1_DEBUG2(i*5*8); UART1_SendString(&quot;): &quot;);
-// 
-// for (n=0;n<5;n++) 	{	DISP_HDLC(HDLC_RX_BUF[i*5+n]);  	}
-// UART1_SendString(&quot; \r\n&quot;);
-// }
-// UART1_SendString(&quot;========\r\n&quot;);
-
-
-    UART2_SendString("TATAL:  ");
-    UART2_DEBUG(HDLC_RX_LEN);
-    UART2_SendString("over:  ");
-    UART2_DEBUG(over_err);
-    UART2_SendString("err:  ");
-    UART2_DEBUG(fram_err);
-
-
-    RX_OK_COUNT++;	// Decoding success count
-    UART2_SendString("RX COUNT:  ");
-    UART2_DEBUG(RX_OK_COUNT);
-
-    for (i = 0; i < HDLC_RX_LEN; i++)
-    {
-        DISP_HDLC(HDLC_RX_BUF[i]);
-    }
-
-
-// return 0;
-
-    TOTAL_IDX = HDLC_RX_LEN * 8; // Total index length
-    HDLC_RX_IDX = 0;	  		 // Start checking 7E index position // UART1_SendString(&quot;TATAL: &quot;); UART1_DEBUG(TOTAL_IDX);
-    KISS_LEN = 0;	
-		stu = HDLC_DECODE(0);
-    for (i = 0; i < 20; i++) 	 // Up to 10 consecutive decodings
-    {
-
-        UART2_SendString("err:  ");
-        UART2_SendData(stu + 0x30);
-        UART2_SendString("\r\n");
-		    
-				if (stu == 5)
-				{
-							success = 1;
-					    KISS_DATA[KISS_LEN++] = 0xc0;
-							KISS_DATA[KISS_LEN++] = 0xc0;
-							KISS_DATA[KISS_LEN++] = 0x00;
-				}
-				stu = HDLC_DECODE(1);
-				if (stu == 3){break;};
-    }
-
-		if (success==1){
-			return 1;
-		}
-    return 0;
-}
-
-
-
-
 uchar CMX865A_HDLC_RX_2()			// Interrupt decoding method
 {
     uint i;
@@ -530,7 +384,7 @@ uchar CMX865A_HDLC_RX_2()			// Interrupt decoding method
 				
 		  	stu = HDLC_DECODE(0);
 				
-        for (i = 0; i < 40; i++) 	 // Up to 10 consecutive decodings
+        for (i = 0; i < 10; i++) 	 // Up to 10 consecutive decodings
         {
 					
             
@@ -615,7 +469,7 @@ void CMX_RX_INT()	// Timed interrupt, 5ms interrupt once
     // B6=1
     HDLC_RX_BUF[HDLC_RX_LEN++] = CMX865A_READ_E5();
 
-    if (HDLC_RX_LEN > 290)
+    if (HDLC_RX_LEN > 1000)
     {
         CMX_RX_BUSY = 1;   // Limit data to 300 bytes at most, if it is too long, it will be skipped
     }

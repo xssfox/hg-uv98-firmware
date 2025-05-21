@@ -299,6 +299,9 @@ void BT_OUT(unsigned char STU)	// STU=0 unknown format, 1=valid beacon received 
         for (i = 0; i < KISS_LEN; i++)
         {	
             UART2_SendData(KISS_DATA[i]);
+					  if (i % 50 == 0){
+							Delay_time_25ms(1);
+						}
         }
 
         UART2_SendData(0xC0);

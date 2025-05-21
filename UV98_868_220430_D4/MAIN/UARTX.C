@@ -41,7 +41,7 @@ uint UARTx_BUF_LENTH;	// Length of serial port data sent and received
 
 uchar UARTx_TXD_KISS()	    	// Processing KISS data received by the serial port
 {
-    unsigned char i;
+    unsigned int i;
 
     if (UARTx_BUF[0] != 0xC0)
     {

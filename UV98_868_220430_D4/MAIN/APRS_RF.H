@@ -8,7 +8,6 @@
 
    
 
-extern unsigned char RF_DECODE();	// RF Decoding KISS Data
 
 /*****************************************/
  

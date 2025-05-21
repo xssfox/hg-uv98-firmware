@@ -51,24 +51,23 @@ void BEACON_TX_CHX(uchar mode)	 // Transmit own beacon MODE=0 Relay forwarding M
     // CH A sends RF beacon
     if (CHx == 0)
     {
-        PTT_CH_A_ON	  	BT_OUT(2);	   // Bluetooth output
+        PTT_CH_A_ON	  	;	   // Bluetooth output
         return;
     }
 
     // CH B sends RF beacon
     if (CHx == 1)
     {
-        PTT_CH_B_ON	 	BT_OUT(2);	   // Bluetooth output
+        PTT_CH_B_ON	 ;	   // Bluetooth output
         return;
     }
 
     // CH A+B sends RF beacon
     if (CHx == 2)
     {
-        PTT_CH_A_ON
+        PTT_CH_A_ON;
         Delay_time_25ms(40);
-        PTT_CH_B_ON
-        BT_OUT(2);
+        PTT_CH_B_ON;
         return; // Bluetooth output
     }
 
